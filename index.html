@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>즐거운 수학 퀴즈!</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* 폰트 변경 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            /* 파스텔 그라데이션 배경 */
+            background: linear-gradient(to bottom right, #bfe2ff, #c1f0d3); /* 라이트블루에서 라이트그린으로 */
+            color: #333;
+            padding: 20px; /* 전체적인 패딩 추가 */
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+        }
+        .container {
+            background-color: #ffffff; /* 컨테이너 배경은 깨끗한 흰색 유지 */
+            padding: 30px 25px; /* 모바일 세로모드에 맞춰 패딩 조정 */
+            border-radius: 15px; /* 모서리 더 둥글게 */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* 그림자 더 강하게 */
+            text-align: center;
+            width: 100%; /* 너비를 100%로 설정하여 작은 화면에서 최적화 */
+            max-width: 450px; /* 최대 너비는 450px로 제한하여 너무 넓어지지 않도록 */
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+        }
+
+        /* Home Screen Styles */
+        #home-screen h1 {
+            color: #4CAF50;
+            margin-bottom: 30px;
+            font-size: 1.8em; /* 폰트 크기 조정 */
+        }
+        .button-group button {
+            /* 홈 화면 버튼 공통 스타일 */
+            color: white;
+            padding: 18px 25px; /* 버튼 패딩 증가 */
+            margin: 10px 0; /* 상하 여백 증가, 좌우 여백 제거 */
+            border: none;
+            border-radius: 10px; /* 둥근 모서리 강화 */
+            cursor: pointer;
+            font-size: 1.3em; /* 폰트 크기 조정 */
+            transition: all 0.3s ease; /* 모든 전환 효과에 적용 */
+            width: 100%; /* 너비를 100%로 설정 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
+        }
+        /* 덧셈 퀴즈 버튼 (붉은색 계열) */
+        #btnAddition {
+            background: linear-gradient(to right, #ff8c8c, #ffb3b3); /* 라이트레드 그라데이션 */
+        }
+        #btnAddition:hover {
+            background: linear-gradient(to right, #e67a7a, #e69c9c); /* 호버 시 색상 약간 변경 */
+            transform: translateY(-5px);
+        }
+
+        /* 뺄셈 퀴즈 버튼 (푸른색 계열) */
+        #btnSubtract {
+            background: linear-gradient(to right, #8cb3ff, #b3d9ff); /* 라이트블루 그라데이션 */
+        }
+        #btnSubtract:hover {
+            background: linear-gradient(to right, #7a9ce6, #9cc8e6); /* 호버 시 색상 약간 변경 */
+            transform: translateY(-5px);
+        }
+
+        /* 구구단 퀴즈 버튼 (오렌지색 계열) */
+        #btnMultiply {
+            background: linear-gradient(to right, #ffb38c, #ffe0b3); /* 라이트오렌지 그라데이션 */
+        }
+        #btnMultiply:hover {
+            background: linear-gradient(to right, #e69c7a, #e6c89c); /* 호버 시 색상 약간 변경 */
+            transform: translateY(-5px);
+        }
+
+        .button-group button:active {
+            transform: translateY(0); /* 클릭 시 원래대로 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 클릭 시 그림자 약화 */
+        }
+
+        /* Quiz Section Common Styles */
+        .quiz-section {
+            position: relative;
+            padding-top: 0;
+        }
+        .quiz-header-area {
+            position: relative;
+            padding-top: 20px;
+            margin-bottom: 20px;
+        }
+        .quiz-section h1 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 1.8em;
+        }
+        #add-sub-section h1 { color: #28a745; }
+        #multiply-section h1 { color: #ff9800; }
+
+        .difficulty-selection {
+            margin-top: 20px;
+        }
+        .difficulty-selection button {
+            color: white;
+            padding: 15px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        /* 난이도 버튼 그라데이션 */
+        #btnEasy {
+            background: linear-gradient(to right, #c1f0d3, #d9f5e0); /* 밝은 녹색 그라데이션 */
+        }
+        #btnEasy:hover {
+            background: linear-gradient(to right, #a8e0bb, #c1f0d3);
+            transform: translateY(-3px);
+        }
+        #btnMedium {
+            background: linear-gradient(to right, #aae6bf, #c1f0d3); /* 기본 녹색 그라데이션 */
+        }
+        #btnMedium:hover {
+            background: linear-gradient(to right, #91d4a8, #aae6bf);
+            transform: translateY(-3px);
+        }
+        #btnHard {
+            background: linear-gradient(to right, #7ad491, #aae6bf); /* 어두운 녹색 그라데이션 */
+        }
+        #btnHard:hover {
+            background: linear-gradient(to right, #63bf7d, #91d4a8);
+            transform: translateY(-3px);
+        }
+
+
+        .quiz-area {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 25px;
+        }
+        .quiz-area #question {
+            font-size: 2.5em; /* 문제 폰트 크기 증가 */
+            font-weight: bold; /* 글자 굵게 */
+            margin-bottom: 25px;
+            color: #343a40;
+            word-break: keep-all;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .option-button {
+            /* 보기 버튼 그라데이션 (덧셈/뺄셈 기본) */
+            background: linear-gradient(to right, #ff99aa, #ffc0cb); /* 라이트핑크 그라데이션 */
+            color: white;
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.3em;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Multiplication specific button color */
+        #multiply-quiz-area .option-button {
+            /* 구구단 보기 버튼 그라데이션 */
+            background: linear-gradient(to right, #c999ff, #e0baff); /* 라이트퍼플 그라데이션 */
+        }
+
+        .option-button:hover {
+            background: linear-gradient(to right, #e8869c, #e6a7b3); /* 호버 시 색상 약간 변경 */
+            transform: translateY(-3px);
+        }
+        #multiply-quiz-area .option-button:hover {
+             background: linear-gradient(to right, #b47ae6, #ca9ce6); /* 호버 시 색상 약간 변경 */
+        }
+
+        .option-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .option-button:disabled {
+            background-color: #cccccc !important; /* disabled 상태에서는 단색 회색 */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 1.8em;
+            font-weight: bold;
+            min-height: 2em;
+        }
+        .correct {
+            color: #28a745;
+        }
+        .incorrect {
+            color: #dc3545;
+        }
+        .highlight-correct {
+            background: linear-gradient(to right, #28a745, #4cd060) !important; /* 정답 강조 초록색 그라데이션 */
+            box-shadow: 0 0 15px #28a745; /* 그림자 더 강하게 */
+            color: white;
+        }
+        .highlight-incorrect {
+            background: linear-gradient(to right, #dc3545, #e05c6d) !important; /* 오답 강조 빨간색 그라데이션 */
+            color: white;
+            box-shadow: 0 0 15px #dc3545; /* 그림자 더 강하게 */
+        }
+
+        /* Progress display style */
+        .progress-display {
+            position: absolute;
+            top: 0px; /* 더 위로 */
+            left: 0px; /* 더 왼쪽으로 */
+            font-size: 1.1em;
+            color: #555;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        /* Final Result Screen Styles */
+        .final-result-screen {
+            background-color: #ffffff;
+            padding: 30px 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+            display: none;
+        }
+        .final-result-screen h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .final-result-screen p {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .home-button-style { /* 통합 홈 버튼 그라데이션 (오렌지 계열) */
+            background: linear-gradient(to right, #ffc107, #ffeb3b); /* 오렌지/옐로우 그라데이션 */
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .home-button-style:hover {
+            background: linear-gradient(to right, #e0a800, #ffd600); /* 호버 시 색상 약간 변경 */
+            transform: translateY(-3px);
+        }
+        .home-button-style:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive adjustments for even smaller screens */
+        @media (max-width: 400px) {
+            .container {
+                padding: 25px 15px;
+            }
+            #home-screen h1, .quiz-section h1 {
+                font-size: 1.6em;
+            }
+            .button-group button, .difficulty-selection button {
+                padding: 15px 10px;
+                font-size: 1.1em;
+            }
+            .option-button {
+                padding: 12px 8px;
+                font-size: 1.2em;
+            }
+            .quiz-area #question {
+                font-size: 2.0em;
+            }
+            #result {
+                font-size: 1.5em;
+            }
+            .progress-display {
+                font-size: 1em;
+                padding: 6px 10px;
+            }
+            .final-result-screen h2 {
+                font-size: 1.8em;
+            }
+            .final-result-screen p {
+                font-size: 1.1em;
+            }
+        }
+        /* 누적 점수 표시 스타일 */
+        #accumulated-score-display {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #e9f5ff;
+            border: 1px solid #b3d7ff;
+        }
+
+        /* Parent Mode Modal Styles */
+        .parent-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure it's on top */
+        }
+
+        .parent-modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .close-modal-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.2s;
+        }
+        .close-modal-button:hover {
+            color: #333;
+        }
+
+        .modal-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        .modal-button {
+            background-color: #4CAF50; /* A pleasant green */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-button:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
+        #current-parent-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="home-screen">
+            <h1>✨ 도전!! 퀴즈 탐험!! ✨</h1>
+            <div id="accumulated-score-display">🌟 하진이의 간식 점수: 0점 🌟</div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">이 점수를 부모님께 보여주고 맛있는 간식과 교환해보세요! 🍪🍭</p>
+            <div class="button-group">
+                <button id="btnAddition">더하기 친구들 덧셈 퀴즈</button>
+                <button id="btnSubtract">빼기 친구들 뺄셈 퀴즈</button>
+                <button id="btnMultiply">곱하기 친구들 구구단 퀴즈</button>
+            </div>
+            <button id="btnParentMode" class="home-button-style" style="margin-top: 20px; background-color: #6c757d;">학부모 전용 🔒</button>
+        </div>
+
+        <!-- Addition / Subtraction Quiz Section -->
+        <div id="add-sub-section" style="display:none;" class="quiz-section">
+            <div id="add-sub-progress-display" class="progress-display" style="display:none;"></div>
+            <div class="quiz-header-area">
+                <h1 id="add-sub-quiz-title">덧셈 퀴즈</h1>
+            </div>
+            <div class="difficulty-selection" id="add-sub-difficulty-selection">
+                <p>어떤 퀴즈를 풀어볼까? 🌈</p>
+                <button id="btnEasy">보통 (새싹 단계) 🌱</button>
+                <button id="btnMedium">어려움 (잎새 단계) 🌿</button>
+                <button id="btnHard">매우 어려움 (열매 단계) 🍎</button>
+                <button id="btnHomeFromDifficulty" class="home-button-style">집으로 돌아가기 🏠</button>
+            </div>
+
+            <div id="add-sub-quiz-area" class="quiz-area" style="display:none;">
+                <p id="add-sub-question"></p>
+                <div id="add-sub-options-container" class="options-container">
+                    <!-- 4지선다 버튼들이 여기에 동적으로 생성됩니다 -->
+                </div>
+                <p id="add-sub-result"></p>
+                <button id="btnHomeFromAddSub" class="home-button-style">집으로 돌아가기 🏡</button>
+            </div>
+            <!-- Addition/Subtraction Final Result Screen -->
+            <div id="add-sub-final-result" class="final-result-screen" style="display:none;">
+                <!-- Result content will be inserted here dynamically -->
+            </div>
+        </div>
+
+        <!-- Multiplication Quiz Section -->
+        <div id="multiply-section" style="display:none;" class="quiz-section">
+            <div id="multiply-progress-display" class="progress-display" style="display:none;"></div>
+            <div class="quiz-header-area">
+                <h1>곱하기 친구들 구구단 퀴즈</h1>
+            </div>
+            <div id="multiply-quiz-area" class="quiz-area" style="display:none;">
+                <p id="multiply-question"></p>
+                <div id="multiply-options-container" class="options-container">
+                    <!-- 4지선다 버튼들이 여기에 동적으로 생성됩니다 -->
+                </div>
+                <p id="multiply-result"></p>
+                <button id="btnHomeFromMultiply" class="home-button-style">집으로 돌아가기 🏡</button>
+            </div>
+            <!-- Multiplication Final Result Screen -->
+            <div id="multiply-final-result" class="final-result-screen" style="display:none;">
+                <!-- Result content will be inserted here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent Mode Modal -->
+    <div id="parent-mode-modal" class="parent-modal-overlay" style="display:none;">
+        <div class="parent-modal-content">
+            <button class="close-modal-button" id="close-parent-modal">&times;</button>
+            <h2 id="parent-modal-title">학부모 모드</h2>
+
+            <div id="password-input-area">
+                <p>비밀번호를 입력해주세요:</p>
+                <input type="password" id="parent-password-input" placeholder="비밀번호" class="modal-input">
+                <p id="password-error-message" class="error-message" style="display:none;"></p>
+                <button id="submit-password-button" class="modal-button">확인</button>
+            </div>
+
+            <div id="score-management-area" style="display:none;">
+                <p>🌟 현재 하진이의 간식 점수: <span id="current-parent-score">0</span>점 🌟</p>
+                <p style="margin-top: 15px;">새로운 총 점수를 입력해주세요:</p>
+                <input type="number" id="new-total-score-input" placeholder="새로운 점수" class="modal-input" min="0">
+                <p id="score-update-message" class="error-message" style="display:none;"></p>
+                <button id="update-total-score-button" class="modal-button">점수 수정</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script type="module">
+        // Firebase 관련 import
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 전역 변수 초기화
+        let currentQuizType = ''; // 'addition', 'subtract', 'multiply'
+        let currentDifficulty = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questions = []; // 현재 퀴즈의 문제, 정답, 보기들을 저장
+
+        const TOTAL_QUESTIONS = 2; // 총 문제 개수를 2개로 임시 조정
+
+        // Firebase 관련 전역 변수
+        let app, db, auth, userId;
+        let accumulatedScore = 0; // 누적 점수
+        let accumulatedScoreDisplayElement; // 누적 점수 표시 DOM 요소
+
+        // Tone.js 관련 전역 변수
+        let clickSynth;
+        let correctSynth; // Tone.PolySynth로 변경됨
+        let incorrectSynth; // Tone.PolySynth로 변경됨
+        let completionSynth;
+        let audioContextStarted = false; // 오디오 컨텍스트 시작 여부 플래그
+
+        // DOM 요소 참조 (window.onload에서 할당)
+        let homeScreen, addSubSection, addSubDifficultySelection, addSubQuizArea, multiplySection, multiplyQuizArea;
+        // 각 퀴즈 영역의 세부 요소들을 전역 변수로 선언
+        let addSubQuestionElement, addSubOptionsContainerElement, addSubResultElement, addSubProgressDisplayElement;
+        let multiplyQuestionElement, multiplyOptionsContainerElement, multiplyResultElement, multiplyProgressDisplayElement;
+        // 최종 결과 화면 요소들
+        let addSubFinalResultScreen, multiplyFinalResultScreen;
+
+        // 현재 활성화된 퀴즈의 요소들을 참조할 변수
+        let currentQuestionElement, currentOptionsContainer, currentResultElement, currentProgressDisplayElement;
+        let currentFinalResultScreen; // 현재 활성화된 최종 결과 화면 요소
+
+        // Parent Mode new DOM element references
+        let parentModeButton;
+        let parentModeModal;
+        let closeParentModalButton;
+        let passwordInputArea;
+        let parentPasswordInput;
+        let passwordErrorMessage;
+        let submitPasswordButton;
+        let scoreManagementArea;
+        let currentParentScoreDisplay;
+        let newTotalScoreInput;
+        let updateTotalScoreButton;
+        let scoreUpdateMessage; // Add reference for score update message
+
+
+        // 오디오 컨텍스트를 시작하고 신디사이저를 초기화하는 함수
+        async function startAudioOnFirstInteraction() {
+            if (!audioContextStarted) {
+                await Tone.start();
+                audioContextStarted = true;
+                console.log("Audio context started.");
+
+                // 신디사이저 초기화
+                clickSynth = new Tone.Synth({
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.01, decay: 0.05, sustain: 0.0, release: 0.05 } // 더 짧고 경쾌하게
+                }).toDestination();
+
+                // '딩동' 소리를 위해 두 개의 다른 노트로 설정
+                correctSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" }, // 부드러운 사인파
+                    envelope: { attack: 0.02, decay: 0.2, sustain: 0.0, release: 0.3 }
+                }).toDestination();
+
+                incorrectSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sawtooth" },
+                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.0, release: 0.2 }
+                }).toDestination();
+
+                completionSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.05, decay: 0.4, sustain: 0.0, release: 0.8 }
+                }).toDestination();
+            }
+        }
+
+        // 일반 버튼 클릭 사운드 재생 함수 (두 개의 음으로 '클릭!' 느낌)
+        function playClickSound() {
+            if (clickSynth) {
+                clickSynth.triggerAttackRelease("C5", "32n", Tone.now()); // 첫 번째 짧은 클릭
+                clickSynth.triggerAttackRelease("E5", "32n", Tone.now() + 0.05); // 아주 짧은 간격 뒤 두 번째 클릭
+            }
+        }
+
+        // 섹션을 보여주거나 숨기는 함수
+        function showSection(sectionId) {
+            // 모든 섹션 숨기기
+            homeScreen.style.display = 'none';
+            addSubSection.style.display = 'none';
+            multiplySection.style.display = 'none';
+            parentModeModal.style.display = 'none'; // Ensure parent modal is hidden
+
+            // 모든 퀴즈 영역과 최종 결과 화면, 진행 상황 표시기도 숨김
+            if (addSubQuizArea) addSubQuizArea.style.display = 'none';
+            if (multiplyQuizArea) multiplyQuizArea.style.display = 'none';
+            if (addSubFinalResultScreen) addSubFinalResultScreen.style.display = 'none';
+            if (multiplyFinalResultScreen) multiplyFinalResultScreen.style.display = 'none';
+            if (addSubProgressDisplayElement) addSubProgressDisplayElement.style.display = 'none';
+            if (multiplyProgressDisplayElement) multiplyProgressDisplayElement.style.display = 'none';
+            if (addSubDifficultySelection) addSubDifficultySelection.style.display = 'none';
+
+
+            // 요청된 섹션만 보여주기
+            document.getElementById(sectionId).style.display = 'block';
+
+            // 퀴즈 상태 초기화 (다른 퀴즈로 이동하거나 홈으로 돌아갈 때)
+            currentQuestionIndex = 0;
+            score = 0;
+            questions = [];
+
+            // 이전 결과 메시지 및 점수 표시 초기화
+            if (currentResultElement) currentResultElement.textContent = '';
+        }
+
+        // 사용자 인증 및 누적 점수 로드
+        async function signInUser() {
+            try {
+                // Canvas 환경이 아닌 GitHub Pages 환경에서는 __initial_auth_token이 제공되지 않으므로,
+                // 항상 signInAnonymously를 시도하도록 변경합니다.
+                await signInAnonymously(auth);
+                userId = auth.currentUser.uid;
+                console.log("Signed in with userId:", userId);
+                await loadAccumulatedScore(); // 점수 로드
+            } catch (error) {
+                console.error("Firebase Auth Error:", error);
+                // 인증 실패 시, 임시 익명 사용자 ID로 폴백 (점수 저장/로드 기능은 동작하지 않음)
+                userId = 'anonymous-fallback-' + crypto.randomUUID();
+                console.log("Using anonymous fallback userId due to auth error:", userId);
+                accumulatedScore = 0; // 인증 실패 시 점수 0으로 초기화
+                updateAccumulatedScoreDisplay(); // 화면 업데이트
+            }
+        }
+
+        // 누적 점수 로드 함수
+        async function loadAccumulatedScore() {
+            if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 접근 시도하지 않음
+                console.log("Fallback userId in use, skipping Firestore load for score.");
+                return;
+            }
+            // Firestore 문서 참조 (개인 사용자 데이터 저장 경로)
+            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            try {
+                const docSnap = await getDoc(userScoreRef);
+                if (docSnap.exists()) {
+                    accumulatedScore = docSnap.data().totalScore || 0;
+                    console.log("누적 점수 로드 완료:", accumulatedScore);
+                } else {
+                    console.log("누적 점수를 찾을 수 없습니다. 0으로 초기화하고 생성합니다.");
+                    accumulatedScore = 0;
+                    await setDoc(userScoreRef, { totalScore: 0 }); // 문서가 없으면 초기 점수 0으로 생성
+                }
+                updateAccumulatedScoreDisplay(); // 화면 업데이트
+            } catch (e) {
+                console.error("누적 점수 로드 중 오류 발생:", e);
+                // 여기서 accumulatedScore를 0으로 리셋하지 않음 (이전 값이 있다면 유지)
+                updateAccumulatedScoreDisplay(); // 화면 업데이트
+            }
+        }
+
+        // 누적 점수 화면 업데이트
+        function updateAccumulatedScoreDisplay() {
+            if (accumulatedScoreDisplayElement) {
+                accumulatedScoreDisplayElement.textContent = `🌟 하진이의 간식 점수: ${accumulatedScore.toFixed(0)}점 🌟`;
+            }
+        }
+
+        // 누적 점수 저장 함수
+        async function saveAccumulatedScore(newScore) {
+            if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 저장 시도하지 않음
+                console.log("Fallback userId in use, skipping Firestore save for score.");
+                return;
+            }
+            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            try {
+                accumulatedScore += Math.round(newScore); // 새 점수를 누적 점수에 더함 (정수로 반올림)
+                await setDoc(userScoreRef, { totalScore: accumulatedScore }, { merge: true }); // merge: true로 기존 필드를 유지하며 업데이트
+                console.log("누적 점수 저장 완료:", accumulatedScore);
+                updateAccumulatedScoreDisplay(); // 화면 업데이트
+            } catch (e) {
+                console.error("누적 점수 저장 중 오류 발생:", e);
+            }
+        }
+
+        // 학부모 모드에서 점수 저장 함수 (덮어쓰기)
+        async function saveScoreForParent(newTotal) {
+            if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 저장 시도하지 않음
+                console.log("Fallback userId in use, skipping Firestore save for parent mode.");
+                scoreUpdateMessage.textContent = "현재 사용자 ID를 통해 점수를 저장할 수 없습니다.";
+                scoreUpdateMessage.style.color = "red";
+                scoreUpdateMessage.style.display = "block";
+                return;
+            }
+            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            try {
+                accumulatedScore = newTotal; // Overwrite the score
+                await setDoc(userScoreRef, { totalScore: accumulatedScore }); // No merge: true, overwrite completely
+                console.log("학부모 모드에서 누적 점수 저장 완료:", accumulatedScore);
+                updateAccumulatedScoreDisplay(); // Update display on home screen
+                scoreUpdateMessage.textContent = `점수가 ${newTotal}점으로 수정되었습니다.`;
+                scoreUpdateMessage.style.color = "green";
+                scoreUpdateMessage.style.display = "block";
+                // Optionally close modal after a short delay
+                setTimeout(() => {
+                    parentModeModal.style.display = 'none';
+                    scoreUpdateMessage.style.display = "none";
+                }, 1500);
+            } catch (e) {
+                console.error("학부모 모드 점수 저장 중 오류 발생:", e);
+                scoreUpdateMessage.textContent = "점수 저장 중 오류가 발생했습니다.";
+                scoreUpdateMessage.style.color = "red";
+                scoreUpdateMessage.style.display = "block";
+            }
+        }
+
+        // *** 사용자님이 제공해주신 실제 firebaseConfig 객체 정보 ***
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvkWU9lmvS-5XwsGZohJujIDieoSKjC5Y", 
+            authDomain: "hajinquizgame.firebaseapp.com",
+            projectId: "hajinquizgame",
+            storageBucket: "hajinquizgame.firebasestorage.app",
+            messagingSenderId: "60234481347",
+            appId: "1:60234481347:web:b7aa24967ccd4b728a2c76"
+        };
+
+        // 디버깅을 위해 firebaseConfig 내용을 콘솔에 출력
+        console.log("Firebase Config:", firebaseConfig);
+
+        // Firebase 앱 초기화는 window.onload 밖에서 전역적으로 수행됩니다.
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+
+        // 페이지 로드 시 DOM 요소 참조 및 이벤트 리스너 부착
+        window.onload = async function() {
+            homeScreen = document.getElementById('home-screen');
+            addSubSection = document.getElementById('add-sub-section');
+            addSubDifficultySelection = document.getElementById('add-sub-difficulty-selection');
+            addSubQuizArea = document.getElementById('add-sub-quiz-area');
+            multiplySection = document.getElementById('multiply-section');
+            multiplyQuizArea = document.getElementById('multiply-quiz-area');
+
+            // 모든 퀴즈 관련 DOM 요소들을 한 번만 가져와 전역 변수에 할당
+            addSubQuestionElement = document.getElementById('add-sub-question');
+            addSubOptionsContainerElement = document.getElementById('add-sub-options-container');
+            addSubResultElement = document.getElementById('add-sub-result');
+            addSubProgressDisplayElement = document.getElementById('add-sub-progress-display');
+            addSubFinalResultScreen = document.getElementById('add-sub-final-result');
+
+            multiplyQuestionElement = document.getElementById('multiply-question');
+            multiplyOptionsContainerElement = document.getElementById('multiply-options-container');
+            multiplyResultElement = document.getElementById('multiply-result');
+            multiplyProgressDisplayElement = document.getElementById('multiply-progress-display');
+            multiplyFinalResultScreen = document.getElementById('multiply-final-result');
+
+            // 누적 점수 표시 요소 가져오기
+            accumulatedScoreDisplayElement = document.getElementById('accumulated-score-display');
+
+            // 학부모 모드 관련 DOM 요소 참조
+            parentModeButton = document.getElementById('btnParentMode');
+            parentModeModal = document.getElementById('parent-mode-modal');
+            closeParentModalButton = document.getElementById('close-parent-modal');
+            passwordInputArea = document.getElementById('password-input-area');
+            parentPasswordInput = document.getElementById('parent-password-input');
+            passwordErrorMessage = document.getElementById('password-error-message');
+            submitPasswordButton = document.getElementById('submit-password-button');
+            scoreManagementArea = document.getElementById('score-management-area');
+            currentParentScoreDisplay = document.getElementById('current-parent-score');
+            newTotalScoreInput = document.getElementById('new-total-score-input');
+            updateTotalScoreButton = document.getElementById('update-total-score-button');
+            scoreUpdateMessage = document.getElementById('score-update-message');
+
+
+            // Firebase 초기화는 이미 전역적으로 이루어졌으므로 여기서 다시 호출할 필요 없음.
+            // 사용자 인증 및 누적 점수 로드
+            await signInUser();
+
+
+            // 홈 화면 버튼 이벤트 리스너 부착 (오디오 컨텍스트 시작 포함)
+            document.getElementById('btnAddition').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                goToAddSubQuiz('addition');
+            });
+            document.getElementById('btnSubtract').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                goToAddSubQuiz('subtract');
+            });
+            document.getElementById('btnMultiply').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                goToMultiplyQuiz();
+            });
+
+            // 덧셈/뺄셈 난이도 선택 버튼 이벤트 리스너 부착
+            document.getElementById('btnEasy').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                startQuiz('easy');
+            });
+            document.getElementById('btnMedium').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                startQuiz('medium');
+            });
+            document.getElementById('btnHard').addEventListener('click', async () => {
+                await startAudioOnFirstInteraction();
+                playClickSound();
+                startQuiz('hard');
+            });
+
+            // 난이도 선택 화면의 홈으로 버튼 이벤트 리스너 부착
+            document.getElementById('btnHomeFromDifficulty').addEventListener('click', () => {
+                playClickSound();
+                showSection('home-screen');
+            });
+
+            // 퀴즈 진행 중 홈으로 버튼 이벤트 리스너 부착
+            document.getElementById('btnHomeFromAddSub').addEventListener('click', () => {
+                playClickSound();
+                showSection('home-screen');
+            });
+            document.getElementById('btnHomeFromMultiply').addEventListener('click', () => {
+                playClickSound();
+                showSection('home-screen');
+            });
+
+            showSection('home-screen'); // 초기에는 홈 화면만 표시
+
+            // Event listeners for parent mode
+            if (parentModeButton) {
+                parentModeButton.addEventListener('click', async () => {
+                    await startAudioOnFirstInteraction();
+                    playClickSound();
+                    parentModeModal.style.display = 'flex';
+                    passwordInputArea.style.display = 'block'; // Show password area
+                    scoreManagementArea.style.display = 'none'; // Hide score management area initially
+                    parentPasswordInput.value = ''; // Clear previous input
+                    passwordErrorMessage.style.display = 'none'; // Hide error message
+                    scoreUpdateMessage.style.display = 'none'; // Hide update message
+                    parentPasswordInput.focus(); // Focus on password input
+                });
+            }
+
+            if (closeParentModalButton) {
+                closeParentModalButton.addEventListener('click', () => {
+                    playClickSound();
+                    parentModeModal.style.display = 'none';
+                });
+            }
+
+            if (submitPasswordButton) {
+                submitPasswordButton.addEventListener('click', () => {
+                    playClickSound();
+                    const enteredPassword = parentPasswordInput.value;
+                    const correctPassword = "1370"; // Initial password
+                    if (enteredPassword === correctPassword) {
+                        passwordInputArea.style.display = 'none';
+                        scoreManagementArea.style.display = 'block';
+                        currentParentScoreDisplay.textContent = accumulatedScore.toFixed(0);
+                        newTotalScoreInput.value = accumulatedScore.toFixed(0); // Pre-fill with current score
+                    } else {
+                        passwordErrorMessage.textContent = "비밀번호가 틀렸습니다."; // Add specific error message here
+                        passwordErrorMessage.style.display = 'block';
+                    }
+                });
+            }
+
+            if (updateTotalScoreButton) {
+                updateTotalScoreButton.addEventListener('click', async () => {
+                    playClickSound();
+                    const newScore = parseInt(newTotalScoreInput.value, 10);
+                    if (!isNaN(newScore) && newScore >= 0) {
+                        await saveScoreForParent(newScore);
+                    } else {
+                        scoreUpdateMessage.textContent = "유효한 점수를 입력해주세요! (0 이상의 숫자)";
+                        scoreUpdateMessage.style.color = "red";
+                        scoreUpdateMessage.style.display = "block";
+                    }
+                });
+            }
+        };
+
+        // 덧셈/뺄셈 퀴즈 섹션으로 이동
+        function goToAddSubQuiz(type) {
+            currentQuizType = type;
+            showSection('add-sub-section');
+            if (addSubDifficultySelection) addSubDifficultySelection.style.display = 'block';
+            
+            // 퀴즈 제목 설정
+            const titleElement = document.getElementById('add-sub-quiz-title');
+            if (titleElement) {
+                if (type === 'addition') {
+                    titleElement.textContent = '더하기 친구들 덧셈 퀴즈';
+                } else if (type === 'subtract') {
+                    titleElement.textContent = '빼기 친구들 뺄셈 퀴즈';
+                }
+            }
+        }
+
+        // 구구단 퀴즈 섹션으로 이동 및 바로 시작
+        function goToMultiplyQuiz() {
+            currentQuizType = 'multiply';
+            showSection('multiply-section'); // showSection이 모든 관련 화면을 숨김
+            startQuiz('multiply'); // 'multiply'를 난이도 인자로 사용하여 구별
+        }
+
+        // --- 퀴즈 문제 생성 로직 ---
+
+        // 난이도에 따라 숫자 범위 생성
+        function generateNumbers(difficulty) {
+            let num1, num2;
+            if (difficulty === 'easy') { // 보통: 한 자릿수 (1-9)
+                num1 = Math.floor(Math.random() * 9) + 1;
+                num2 = Math.floor(Math.random() * 9) + 1;
+            } else if (difficulty === 'medium') { // 어려움: 한 자릿수와 두 자릿수 조합
+                if (Math.random() < 0.5) { // 50% 확률로 (1-9) + (10-99)
+                    num1 = Math.floor(Math.random() * 9) + 1;
+                    num2 = Math.floor(Math.random() * 90) + 10;
+                } else { // 50% 확률로 (10-99) + (1-9)
+                    num1 = Math.floor(Math.random() * 90) + 10;
+                    num2 = Math.floor(Math.random() * 9) + 1;
+                }
+            } else if (difficulty === 'hard') { // 매우 어려움: 두 자릿수 (10-99)
+                num1 = Math.floor(Math.random() * 90) + 10;
+                num2 = Math.floor(Math.random() * 90) + 10;
+            }
+            return { num1, num2 };
+        }
+
+        // 정답과 오답 보기 생성
+        function generateOptions(correctAnswer, difficulty, quizType) {
+            const options = new Set(); // 중복 방지를 위해 Set 사용
+            options.add(correctAnswer);
+
+            let minOffset, maxOffset;
+
+            if (quizType === 'multiply') {
+                minOffset = -15; maxOffset = 15; // 구구단은 결과 범위가 작으므로 오프셋도 작게
+            } else if (difficulty === 'easy') {
+                minOffset = -5; maxOffset = 5;
+            } else if (difficulty === 'medium') {
+                minOffset = -15; maxOffset = 15;
+            } else { // hard
+                minOffset = -25; maxOffset = 25;
+            }
+
+            // 최대 3개의 오답 생성
+            while (options.size < 4) {
+                let distractor;
+                const randomOffset = Math.floor(Math.random() * (maxOffset - minOffset + 1)) + minOffset;
+
+                // 정답과 같거나, 음수가 되는 오답은 피함
+                if (randomOffset === 0 || correctAnswer + randomOffset < 0) continue;
+
+                distractor = correctAnswer + randomOffset;
+
+                // 퀴즈 타입과 난이도에 따른 결과 범위 제한
+                if (quizType === 'multiply') {
+                    if (distractor < 0 || distractor > 81) continue; // 구구단 최대 9x9=81
+                } else if (difficulty === 'easy') {
+                    if (distractor > 18) continue; // 한 자릿수 덧셈 최대 9+9=18
+                } else if (difficulty === 'medium') {
+                    if (distractor > 108) continue; // 한/두 자릿수 덧셈 최대 9+99=108
+                } else if (difficulty === 'hard') {
+                    if (distractor > 198) continue; // 두 자릿수 덧셈 최대 99+99=198
+                }
+
+                if (!options.has(distractor)) {
+                    options.add(distractor);
+                }
+            }
+            const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5); // 배열로 변환 후 섞기
+            return shuffledOptions;
+        }
+
+        // --- 퀴즈 시작 및 진행 로직 ---
+
+        // 퀴즈 시작 (난이도 선택 또는 구구단 바로 시작 시 호출)
+        function startQuiz(difficulty) {
+            currentDifficulty = difficulty;
+            currentQuestionIndex = 0;
+            score = 0;
+            questions = []; // 문제 배열 초기화
+
+            // 현재 활성화된 퀴즈 섹션에 따라 DOM 요소 참조 설정
+            if (currentQuizType === 'multiply') {
+                currentQuestionElement = multiplyQuestionElement;
+                currentOptionsContainer = multiplyOptionsContainerElement;
+                currentResultElement = multiplyResultElement;
+                currentProgressDisplayElement = multiplyProgressDisplayElement;
+                currentFinalResultScreen = multiplyFinalResultScreen;
+
+                if (multiplyQuizArea) multiplyQuizArea.style.display = 'block'; // 구구단 퀴즈 영역 표시
+                if (multiplyFinalResultScreen) multiplyFinalResultScreen.style.display = 'none'; // 최종 결과 화면 숨김
+            } else { // addition or subtract
+                currentQuestionElement = addSubQuestionElement;
+                currentOptionsContainer = addSubOptionsContainerElement;
+                currentResultElement = addSubResultElement;
+                currentProgressDisplayElement = addSubProgressDisplayElement;
+                currentFinalResultScreen = addSubFinalResultScreen;
+
+                if (addSubDifficultySelection) addSubDifficultySelection.style.display = 'none'; // 난이도 선택 숨김
+                if (addSubQuizArea) addSubQuizArea.style.display = 'block'; // 덧셈/뺄셈 퀴즈 영역 표시
+                if (addSubFinalResultScreen) addSubFinalResultScreen.style.display = 'none'; // 최종 결과 화면 숨김
+            }
+            
+            if (currentProgressDisplayElement) currentProgressDisplayElement.style.display = 'block';
+
+            // 총 문제 개수(TOTAL_QUESTIONS)만큼 문제 샘플 생성
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+                let questionText, answer, options;
+
+                if (currentQuizType === 'multiply') {
+                    const num1 = Math.floor(Math.random() * 8) + 2; // 2단부터 9단까지
+                    const num2 = Math.floor(Math.random() * 9) + 1; // 1부터 9까지 곱할 수
+                    questionText = `${num1} X ${num2} = ?`;
+                    answer = num1 * num2;
+                    options = generateOptions(answer, difficulty, currentQuizType);
+                } else { // addition or subtract
+                    let { num1, num2 } = generateNumbers(difficulty);
+                    if (currentQuizType === 'addition') {
+                        questionText = `${num1} + ${num2} = ?`;
+                        answer = num1 + num2;
+                    } else if (currentQuizType === 'subtract') {
+                        // 뺄셈의 경우, 항상 큰 숫자에서 작은 숫수를 빼도록 조정
+                        if (num1 < num2) {
+                            [num1, num2] = [num2, num1]; // Swap if num1 is smaller
+                        }
+                        questionText = `${num1} - ${num2} = ?`;
+                        answer = num1 - num2;
+                    }
+                    options = generateOptions(answer, difficulty, currentQuizType);
+                }
+                questions.push({ question: questionText, answer: answer, options: options });
+            }
+
+            displayQuestion(); // 첫 문제 표시
+        }
+
+        // 문제 및 보기 표시 함수
+        function displayQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                const q = questions[currentQuestionIndex];
+                if (currentQuestionElement) { 
+                    currentQuestionElement.textContent = q.question;
+                }
+                if (currentResultElement) {
+                    currentResultElement.textContent = ''; // 결과 메시지 초기화
+                }
+                if (currentProgressDisplayElement) {
+                    currentProgressDisplayElement.textContent = `${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}`;
+                }
+
+                if (currentOptionsContainer) { 
+                    currentOptionsContainer.innerHTML = ''; // 이전 보기들 초기화
+
+                    // 4지선다 버튼 생성 및 추가
+                    q.options.forEach(option => {
+                        const button = document.createElement('button');
+                        button.classList.add('option-button');
+                        button.textContent = option;
+                        button.value = option; // 버튼 값으로 보기를 저장
+                        button.onclick = () => {
+                            playClickSound(); // 보기 버튼 클릭 시 소리 재생
+                            checkAnswer(option, button);
+                        }; 
+                        currentOptionsContainer.appendChild(button);
+                    });
+                }
+
+            } else {
+                // 모든 문제 풀이 완료
+                showResult();
+            }
+        }
+
+        // 정답 확인 함수
+        function checkAnswer(selectedAnswer, clickedButton) {
+            const correctAnswer = questions[currentQuestionIndex].answer;
+            const optionButtons = currentOptionsContainer.querySelectorAll('.option-button');
+
+            // 모든 버튼 비활성화 (중복 클릭 방지)
+            optionButtons.forEach(button => button.disabled = true);
+
+            if (selectedAnswer === correctAnswer) {
+                if (currentResultElement) {
+                    currentResultElement.textContent = '딩동댕! 정말 잘했어요! 🌟';
+                    currentResultElement.className = 'correct';
+                }
+                clickedButton.classList.add('highlight-correct'); // 선택한 버튼 하이라이트
+                score++;
+                if (correctSynth) { // 정답 "딩동" 소리
+                    correctSynth.triggerAttackRelease("C5", "16n"); // 첫 번째 "딩"
+                    correctSynth.triggerAttackRelease("G5", "16n", Tone.now() + 0.1); // 0.1초 뒤 "동"
+                }
+            } else {
+                if (currentResultElement) {
+                    currentResultElement.textContent = `아쉽다! 정답은 ${correctAnswer}였어. 다음에 더 잘하자! 😉`;
+                    currentResultElement.className = 'incorrect';
+                }
+                clickedButton.classList.add('highlight-incorrect'); // 선택한 틀린 버튼 하이라이트
+
+                // 올바른 정답 버튼 하이라이트
+                optionButtons.forEach(button => {
+                    if (parseInt(button.value) === correctAnswer) {
+                        button.classList.add('highlight-correct');
+                    }
+                });
+                if (incorrectSynth) { // 오답 소리 (정답 소리를 거꾸로)
+                    incorrectSynth.triggerAttackRelease("G4", "16n"); // "동" 낮은 버전
+                    incorrectSynth.triggerAttackRelease("C4", "16n", Tone.now() + 0.1); // "딩" 낮은 버전
+                }
+            }
+
+            // 잠시 결과 표시 후 다음 문제로
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayQuestion();
+            }, 2000); // 2초 후 다음 문제
+        }
+
+        // 최종 결과 표시 함수
+        function showResult() {
+            // 현재 퀴즈 영역을 숨김
+            if (currentQuizType === 'multiply') {
+                if (multiplyQuizArea) multiplyQuizArea.style.display = 'none';
+            } else {
+                if (addSubQuizArea) addSubQuizArea.style.display = 'none';
+            }
+
+            // 최종 결과 화면을 표시할 요소를 선택
+            if (currentFinalResultScreen) {
+                currentFinalResultScreen.style.display = 'block';
+            }
+
+            if (currentProgressDisplayElement) {
+                currentProgressDisplayElement.style.display = 'none'; // 퀴즈 종료 시 진행 상황 표시기 숨김
+            }
+
+            // 100점 만점으로 환산
+            const baseScore = (score / TOTAL_QUESTIONS) * 100;
+            let finalScore = baseScore;
+            let bonusText = "";
+
+            if (currentQuizType !== 'multiply') { // 덧셈/뺄셈 퀴즈에만 난이도 보너스 적용
+                if (currentDifficulty === 'medium') {
+                    finalScore = baseScore * 2;
+                    bonusText = `<p>${baseScore.toFixed(0)}점 X 난이도 보너스 2배!! = 총 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}점</span> 획득했어! 최고! 🏆</p>`;
+                } else if (currentDifficulty === 'hard') {
+                    finalScore = baseScore * 3;
+                    bonusText = `<p>${baseScore.toFixed(0)}점 X 난이도 보너스 3배!! = 총 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}점</span> 획득했어! 최고! 🏆</p>`;
+                }
+            } else { // 구구단 퀴즈 점수도 누적 점수에 반영
+                 finalScore = baseScore; // 구구단은 보너스 없음
+            }
+
+            // 누적 점수 저장
+            saveAccumulatedScore(finalScore); // 현재 퀴즈의 최종 점수를 누적 점수에 합산
+
+            if (currentFinalResultScreen) {
+                currentFinalResultScreen.innerHTML = `
+                    <h2>퀴즈 대모험 끝! 🎉</h2>
+                    <p>총 ${TOTAL_QUESTIONS}개 문제 중에 ${score}개 맞췄네! 대단하다! 👍</p>
+                    ${bonusText ? bonusText : `<p>별 100개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
+                    <button id="restartQuizButtonFinal" class="option-button">다시 도전! 💪</button>
+                    <button id="homeFromResultButtonFinal" class="home-button-style">집으로 돌아가기 🏡</button>
+                `;
+            }
+
+            // "짜잔~" 느낌의 완료 소리 반복
+            if (completionSynth) {
+                const now = Tone.now();
+                // 코드가 연속으로 여러 번 재생되도록 조정
+                completionSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+                completionSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now + 0.3);
+                completionSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now + 0.6);
+                completionSynth.triggerAttackRelease(["G5", "C6", "E6"], "4n", now + 1.0); // 마지막은 더 높은 음으로 강조
+            }
+
+            // '다시 시작' 버튼과 '홈으로' 버튼에 이벤트 리스너 부착
+            // DOM 업데이트 후 작은 지연을 두어 버튼이 완전히 렌더링된 후 접근하도록 수정
+            setTimeout(() => {
+                // IMPORTANT: Use querySelector on currentFinalResultScreen to ensure correct button reference
+                const restartButton = currentFinalResultScreen.querySelector('#restartQuizButtonFinal');
+                if (restartButton) {
+                    restartButton.addEventListener('click', () => {
+                        playClickSound(); // 다시 도전 버튼 클릭 시 소리 재생
+                        // 퀴즈 타입과 난이도를 유지하며 startQuiz 호출
+                        if (currentQuizType === 'multiply') {
+                            goToMultiplyQuiz(); // 구구단은 난이도 선택 없이 바로 시작
+                        } else {
+                            startQuiz(currentDifficulty); // 덧셈/뺄셈은 현재 난이도로 재시작
+                        }
+                    });
+                } else {
+                    console.error("Restart button not found after timeout!"); // 디버그 로그
+                }
+
+                const homeFromResultButton = currentFinalResultScreen.querySelector('#homeFromResultButtonFinal');
+                if (homeFromResultButton) {
+                    homeFromResultButton.addEventListener('click', () => {
+                        playClickSound(); // 홈으로 버튼 클릭 시 소리 재생
+                        showSection('home-screen');
+                    });
+                } else {
+                    console.error("Home button not found after timeout!"); // 디버그 로그
+                }
+            }, 200); // 지연 시간을 200ms로 증가
+        }
+    </script>
+</body>
+</html>
