@@ -501,7 +501,7 @@
         let score = 0;
         let questions = []; // 현재 퀴즈의 문제, 정답, 보기들을 저장
 
-        const TOTAL_QUESTIONS = 2; // 총 문제 개수를 2개로 임시 조정
+        const TOTAL_QUESTIONS = 40; // 총 문제 개수를 2개에서 40개로 변경!
 
         // Firebase 관련 전역 변수
         let app, db, auth, userId;
@@ -711,7 +711,7 @@
             }
         }
 
-        // *** 사용자님이 제공해주신 실제 firebaseConfig 객체 정보 ***
+        // 사용자님이 제공해주신 실제 firebaseConfig 객체 정보가 여기에 반영되었습니다.
         const firebaseConfig = {
             apiKey: "AIzaSyAvkWU9lmvS-5XwsGZohJujIDieoSKjC5Y", 
             authDomain: "hajinquizgame.firebaseapp.com",
@@ -1085,7 +1085,7 @@
 
             if (selectedAnswer === correctAnswer) {
                 if (currentResultElement) {
-                    currentResultElement.textContent = '딩동댕! 정말 잘했어요! 🌟';
+                    currentResultElement.textContent = '딩동댕! 정말 잘했어요!  ';
                     currentResultElement.className = 'correct';
                 }
                 clickedButton.classList.add('highlight-correct'); // 선택한 버튼 하이라이트
@@ -1211,3 +1211,4 @@
     </script>
 </body>
 </html>
+ 
