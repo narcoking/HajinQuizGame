@@ -331,6 +331,8 @@
             justify-content: center;
             align-items: center;
             z-index: 1000; /* Ensure it's on top */
+            /* 스크롤 가능하도록 추가 */
+            overflow-y: auto; 
         }
 
         .parent-modal-content {
@@ -342,6 +344,10 @@
             width: 90%;
             max-width: 400px;
             position: relative;
+            /* 최소 높이 제거 또는 줄이기 */
+            min-height: auto; 
+            /* 내부 여백 조정 */
+            padding-bottom: 20px; 
         }
 
         .close-modal-button {
@@ -362,7 +368,8 @@
         .modal-input {
             width: calc(100% - 20px);
             padding: 10px;
-            margin-bottom: 15px;
+            /* 입력 필드 간의 상하 마진 조정 */
+            margin-bottom: 10px; 
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1em;
@@ -381,7 +388,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             /* 버튼 가운데 정렬을 위한 스타일 추가 */
             display: block; /* 블록 요소로 만들어 너비 전체 사용 */
-            margin: 0 auto; /* 좌우 마진 자동 설정으로 가운데 정렬 */
+            margin: 15px auto 0; /* 상단 마진 15px, 좌우 자동, 하단 0 */
             max-width: 150px; /* 버튼의 최대 너비를 제한하여 가운데 정렬이 더 잘 되도록 */
         }
 
@@ -392,8 +399,8 @@
         .error-message {
             color: red;
             font-size: 0.9em;
-            margin-top: -10px;
-            margin-bottom: 15px;
+            margin-top: -5px; /* 에러 메시지 상단 마진 줄이기 */
+            margin-bottom: 10px; /* 에러 메시지 하단 마진 줄이기 */
         }
 
         #current-parent-score {
@@ -407,6 +414,12 @@
         #score-management-area,
         #password-change-area {
             text-align: center; /* 이 안에 있는 인라인 요소들과 마진 오토가 적용된 블록 요소들을 가운데 정렬 */
+            /* 각 섹션별 상단 마진 조정 */
+            margin-top: 15px; 
+        }
+        #password-input-area p, #score-management-area p, #password-change-area p {
+            margin-bottom: 8px; /* p 태그 하단 마진 줄이기 */
+            margin-top: 10px; /* p 태그 상단 마진 추가 */
         }
     </style>
 </head>
@@ -493,11 +506,10 @@
                 <p style="margin-top: 15px;">새로운 총 점수를 입력해주세요:</p>
                 <input type="number" id="new-total-score-input" placeholder="새로운 점수" class="modal-input" min="0">
                 <p id="score-update-message" class="error-message" style="display:none;"></p>
-                <button id="update-total-score-button" class="modal-button">점수 수정</button>
             </div>
 
             <!-- New Password Change Area -->
-            <div id="password-change-area" style="display:none; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+            <div id="password-change-area" style="display:none; margin-top: 15px; padding-top: 20px; border-top: 1px solid #eee;">
                 <h3>비밀번호 변경</h3>
                 <p>현재 비밀번호를 입력해주세요:</p>
                 <input type="password" id="current-password-change-input" placeholder="현재 비밀번호" class="modal-input">
