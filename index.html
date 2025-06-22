@@ -379,7 +379,7 @@
             font-size: 1.1em;
             transition: background-color 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            /* 버튼 중앙 정렬을 위한 스타일 추가 */
+            /* 버튼 가운데 정렬을 위한 스타일 추가 */
             display: block; /* 블록 요소로 만들어 너비 전체 사용 */
             margin: 0 auto; /* 좌우 마진 자동 설정으로 가운데 정렬 */
             max-width: 150px; /* 버튼의 최대 너비를 제한하여 가운데 정렬이 더 잘 되도록 */
@@ -400,6 +400,13 @@
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
+        }
+
+        /* 학부모 모달 내 특정 영역의 텍스트 정렬 */
+        #password-input-area,
+        #score-management-area,
+        #password-change-area {
+            text-align: center; /* 이 안에 있는 인라인 요소들과 마진 오토가 적용된 블록 요소들을 가운데 정렬 */
         }
     </style>
 </head>
@@ -488,7 +495,8 @@
                 <p id="score-update-message" class="error-message" style="display:none;"></p>
                 <button id="update-total-score-button" class="modal-button">점수 수정</button>
             </div>
-             <!-- New Password Change Area -->
+
+            <!-- New Password Change Area -->
             <div id="password-change-area" style="display:none; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
                 <h3>비밀번호 변경</h3>
                 <p>현재 비밀번호를 입력해주세요:</p>
@@ -499,7 +507,7 @@
                 <input type="password" id="confirm-new-password-input" placeholder="새 비밀번호 확인" class="modal-input">
                 <p id="password-change-message" class="error-message" style="display:none;"></p>
             </div>
-             <!-- Consolidated Confirm Button - Initially hidden -->
+            <!-- Consolidated Confirm Button - Initially hidden -->
             <button id="confirm-parent-mode-button" class="modal-button" style="background-color: #4CAF50; margin-top: 20px; display: none;">확인</button>
         </div>
     </div>
@@ -522,10 +530,10 @@
         const TOTAL_QUESTIONS = 40; // 총 문제 개수를 2개에서 40개로 변경!
 
         // Firebase 관련 전역 변수
-        let app, db, auth, userId;
-        let accumulatedScore = 0; // 누적 점수
-        let parentPassword = "1370"; // 학부모 모드 비밀번호 (기본값)
-        let accumulatedScoreDisplayElement; // 누적 점수 표시 DOM 요소
+        var app, db, auth, userId; // 'let' 대신 'var'를 사용하여 변수 호이스팅을 보장
+        var accumulatedScore = 0; // 누적 점수
+        var parentPassword = "1370"; // 학부모 모드 비밀번호 (기본값)
+        var accumulatedScoreDisplayElement; // 누적 점수 표시 DOM 요소
 
         // Tone.js 관련 전역 변수
         let clickSynth;
@@ -558,7 +566,7 @@
         let currentParentScoreDisplay;
         let newTotalScoreInput;
         let updateTotalScoreButton;
-        let scoreUpdateMessage; // Add reference for score update message
+        let scoreUpdateMessage;
         // New password change DOM elements
         let passwordChangeArea;
         let currentPasswordChangeInput;
@@ -664,8 +672,15 @@
 
         // 누적 점수 로드 함수
         async function loadAccumulatedScore() {
+            // 방어적인 코드: 만약 어떤 이유로 parentPassword가 아직 정의되지 않았다면 초기화
+            if (typeof parentPassword === 'undefined') {
+                parentPassword = "1370";
+                console.warn("parentPassword가 loadAccumulatedScore에서 정의되지 않아 기본값으로 초기화되었습니다.");
+            }
+
             if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 접근 시도하지 않음
                 console.log("Fallback userId in use, skipping Firestore load for score.");
+                parentPassword = "1370"; // 폴백 경로에서도 비밀번호를 명확히 설정
                 return;
             }
             // Firestore 문서 참조 (개인 사용자 데이터 저장 경로)
@@ -678,7 +693,7 @@
                     const data = docSnap.data();
                     accumulatedScore = data.totalScore || 0;
                     // Load parent password, default to "1370" if not found
-                    parentPassword = data.parentPassword || "1370";
+                    parentPassword = data.parentPassword !== undefined ? data.parentPassword : "1370";
                     console.log("누적 점수 로드 완료:", accumulatedScore, "비밀번호 로드 완료:", parentPassword);
                 } else {
                     console.log("누적 점수를 찾을 수 없습니다. 0으로 초기화하고 생성합니다.");
@@ -689,7 +704,7 @@
                 updateAccumulatedScoreDisplay(); // 화면 업데이트
             } catch (e) {
                 console.error("누적 점수 로드 중 오류 발생:", e);
-                // 여기서 accumulatedScore를 0으로 리셋하지 않음 (이전 값이 있다면 유지)
+                parentPassword = "1370"; // 오류 발생 시 비밀번호 기본값으로 설정하여 후속 오류 방지
                 updateAccumulatedScoreDisplay(); // 화면 업데이트
             }
         }
@@ -697,7 +712,7 @@
         // 누적 점수 화면 업데이트
         function updateAccumulatedScoreDisplay() {
             if (accumulatedScoreDisplayElement) {
-                accumulatedScoreDisplayElement.textContent = `🌟 하진이의 간식 점수: ${accumulatedScore.toFixed(0)}점  `;
+                accumulatedScoreDisplayElement.textContent = `🌟 하진이의 간식 점수: ${accumulatedScore.toFixed(0)}점 🌟`;
             }
             // 디버그용 사용자 ID 표시 업데이트
             const debugUserIdElement = document.getElementById('debug-user-id');
@@ -1297,7 +1312,7 @@
             setTimeout(() => {
                 currentQuestionIndex++;
                 displayQuestion();
-            }, 0); // 1000ms (1초)를 0ms (0초)로 변경
+            }, 2000); // 2초 후 다음 문제
         }
 
         // 최종 결과 표시 함수
@@ -1318,9 +1333,8 @@
                 currentProgressDisplayElement.style.display = 'none'; // 퀴즈 종료 시 진행 상황 표시기 숨김
             }
 
-            // 500점 만점으로 환산
-            const baseScore = (score / TOTAL_QUESTIONS) * 500; 
-
+            // 100점 만점으로 환산
+            const baseScore = (score / TOTAL_QUESTIONS) * 100;
             let finalScore = baseScore;
             let bonusText = "";
 
@@ -1343,7 +1357,7 @@
                 currentFinalResultScreen.innerHTML = `
                     <h2>퀴즈 대모험 끝! 🎉</h2>
                     <p>총 ${TOTAL_QUESTIONS}개 문제 중에 ${score}개 맞췄네! 대단하다! 👍</p>
-                    ${bonusText ? bonusText : `<p>별 500개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
+                    ${bonusText ? bonusText : `<p>별 100개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
                     <button id="restartQuizButtonFinal" class="option-button">다시 도전! 💪</button>
                     <button id="homeFromResultButtonFinal" class="home-button-style">집으로 돌아가기 🏡</button>
                 `;
@@ -1392,4 +1406,3 @@
     </script>
 </body>
 </html>
- 
