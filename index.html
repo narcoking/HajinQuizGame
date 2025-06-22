@@ -379,6 +379,9 @@
             font-size: 1.1em;
             transition: background-color 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* 버튼 중앙 정렬을 위한 스타일 추가 */
+            display: block; /* 블록 요소로 만들어 너비 전체 사용 */
+            margin: 0 auto; /* 좌우 마진 자동 설정으로 가운데 정렬 */
         }
 
         .modal-button:hover {
@@ -404,7 +407,7 @@
         <!-- Home Screen -->
         <div id="home-screen">
             <h1>✨ 도전!! 퀴즈 탐험!! ✨</h1>
-            <div id="accumulated-score-display">🌟 하진이의 간식 점수: 0점 🌟</div>
+            <div id="accumulated-score-display">  하진이의 간식 점수: 0점 🌟</div>
             <p style="font-size: 0.9em; color: #666; margin-top: 10px;">이 점수를 부모님께 보여주고 맛있는 간식과 교환해보세요! 🍪🍭</p>
             <div class="button-group">
                 <button id="btnAddition">더하기 친구들 덧셈 퀴즈</button>
@@ -481,8 +484,21 @@
                 <p style="margin-top: 15px;">새로운 총 점수를 입력해주세요:</p>
                 <input type="number" id="new-total-score-input" placeholder="새로운 점수" class="modal-input" min="0">
                 <p id="score-update-message" class="error-message" style="display:none;"></p>
-                <button id="update-total-score-button" class="modal-button">점수 수정</button>
             </div>
+
+            <!-- New Password Change Area -->
+            <div id="password-change-area" style="display:none; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3>비밀번호 변경</h3>
+                <p>현재 비밀번호를 입력해주세요:</p>
+                <input type="password" id="current-password-change-input" placeholder="현재 비밀번호" class="modal-input">
+                <p>새 비밀번호를 입력해주세요:</p>
+                <input type="password" id="new-password-input" placeholder="새 비밀번호" class="modal-input">
+                <p>새 비밀번호를 다시 입력해주세요:</p>
+                <input type="password" id="confirm-new-password-input" placeholder="새 비밀번호 확인" class="modal-input">
+                <p id="password-change-message" class="error-message" style="display:none;"></p>
+            </div>
+            <!-- Consolidated Confirm Button - Initially hidden -->
+            <button id="confirm-parent-mode-button" class="modal-button" style="background-color: #4CAF50; margin-top: 20px; display: none;">확인</button>
         </div>
     </div>
 
@@ -506,6 +522,7 @@
         // Firebase 관련 전역 변수
         let app, db, auth, userId;
         let accumulatedScore = 0; // 누적 점수
+        let parentPassword = "1370"; // 학부모 모드 비밀번호 (기본값)
         let accumulatedScoreDisplayElement; // 누적 점수 표시 DOM 요소
 
         // Tone.js 관련 전역 변수
@@ -538,8 +555,14 @@
         let scoreManagementArea;
         let currentParentScoreDisplay;
         let newTotalScoreInput;
-        let updateTotalScoreButton;
         let scoreUpdateMessage; // Add reference for score update message
+        // New password change DOM elements
+        let passwordChangeArea;
+        let currentPasswordChangeInput;
+        let newPasswordInput;
+        let confirmNewPasswordInput;
+        let passwordChangeMessage;
+        let confirmParentModeButton; // New consolidated button
 
 
         // 오디오 컨텍스트를 시작하고 신디사이저를 초기화하는 함수
@@ -631,6 +654,7 @@
                 userId = 'anonymous-fallback-' + crypto.randomUUID();
                 console.log("Using anonymous fallback userId due to auth error:", userId);
                 accumulatedScore = 0; // 인증 실패 시 점수 0으로 초기화
+                parentPassword = "1370"; // 인증 실패 시 비밀번호 기본값으로 설정
                 updateAccumulatedScoreDisplay(); // 화면 업데이트
             }
         }
@@ -648,12 +672,16 @@
             try {
                 const docSnap = await getDoc(userScoreRef);
                 if (docSnap.exists()) {
-                    accumulatedScore = docSnap.data().totalScore || 0;
-                    console.log("누적 점수 로드 완료:", accumulatedScore);
+                    const data = docSnap.data();
+                    accumulatedScore = data.totalScore || 0;
+                    // Load parent password, default to "1370" if not found
+                    parentPassword = data.parentPassword || "1370";
+                    console.log("누적 점수 로드 완료:", accumulatedScore, "비밀번호 로드 완료:", parentPassword);
                 } else {
                     console.log("누적 점수를 찾을 수 없습니다. 0으로 초기화하고 생성합니다.");
                     accumulatedScore = 0;
-                    await setDoc(userScoreRef, { totalScore: 0 }); // 문서가 없으면 초기 점수 0으로 생성
+                    parentPassword = "1370"; // Default password
+                    await setDoc(userScoreRef, { totalScore: 0, parentPassword: parentPassword }); // Create with default password
                 }
                 updateAccumulatedScoreDisplay(); // 화면 업데이트
             } catch (e) {
@@ -696,31 +724,61 @@
                 scoreUpdateMessage.textContent = "현재 사용자 ID를 통해 점수를 저장할 수 없습니다.";
                 scoreUpdateMessage.style.color = "red";
                 scoreUpdateMessage.style.display = "block";
-                return;
+                return false; // Return false to indicate failure for combined logic
             }
             // Use __app_id for the artifactId if available
             const artifactId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
             const userScoreRef = doc(db, `artifacts/${artifactId}/users/${userId}/userScores`, 'total');
             try {
                 accumulatedScore = newTotal; // Overwrite the score
-                await setDoc(userScoreRef, { totalScore: accumulatedScore }); // No merge: true, overwrite completely
+                await setDoc(userScoreRef, { totalScore: accumulatedScore }, { merge: true }); // merge: true로 기존 필드를 유지하며 업데이트
                 console.log("학부모 모드에서 누적 점수 저장 완료:", accumulatedScore);
                 updateAccumulatedScoreDisplay(); // Update display on home screen
                 scoreUpdateMessage.textContent = `점수가 ${newTotal}점으로 수정되었습니다.`;
                 scoreUpdateMessage.style.color = "green";
                 scoreUpdateMessage.style.display = "block";
-                // Optionally close modal after a short delay
-                setTimeout(() => {
-                    parentModeModal.style.display = 'none';
-                    scoreUpdateMessage.style.display = "none";
-                }, 1500);
+                return true; // Return true to indicate success
             } catch (e) {
                 console.error("학부모 모드 점수 저장 중 오류 발생:", e);
                 scoreUpdateMessage.textContent = "점수 저장 중 오류가 발생했습니다.";
                 scoreUpdateMessage.style.color = "red";
                 scoreUpdateMessage.style.display = "block";
+                return false; // Return false to indicate failure
             }
         }
+
+        // 학부모 모드에서 비밀번호 저장 함수 (덮어쓰기)
+        async function saveParentPassword(newPass) {
+            if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 저장 시도하지 않음
+                console.log("Fallback userId in use, skipping Firestore save for parent password.");
+                passwordChangeMessage.textContent = "현재 사용자 ID를 통해 비밀번호를 저장할 수 없습니다.";
+                passwordChangeMessage.style.color = "red";
+                passwordChangeMessage.style.display = "block";
+                return false; // Return false to indicate failure for combined logic
+            }
+            const artifactId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            const userScoreRef = doc(db, `artifacts/${artifactId}/users/${userId}/userScores`, 'total');
+            try {
+                await setDoc(userScoreRef, { parentPassword: newPass }, { merge: true }); // 비밀번호 필드만 업데이트
+                parentPassword = newPass; // 로컬 변수 업데이트
+                console.log("비밀번호 저장 완료:", parentPassword);
+                passwordChangeMessage.textContent = "비밀번호가 성공적으로 변경되었습니다!";
+                passwordChangeMessage.style.color = "green";
+                passwordChangeMessage.style.display = "block";
+                // 성공 시 입력 필드 초기화
+                currentPasswordChangeInput.value = '';
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+                return true; // Return true to indicate success
+            } catch (e) {
+                console.error("비밀번호 저장 중 오류 발생:", e);
+                passwordChangeMessage.textContent = "비밀번호 저장 중 오류가 발생했습니다.";
+                passwordChangeMessage.style.color = "red";
+                passwordChangeMessage.style.display = "block";
+                return false; // Return false to indicate failure
+            }
+        }
+
 
         // Canvas 환경에서 제공하는 __firebase_config와 __app_id 변수를 사용하도록 수정합니다.
         // 이렇게 하면 API 키가 코드에 직접 노출되지 않아 보안이 강화됩니다.
@@ -780,8 +838,14 @@
             scoreManagementArea = document.getElementById('score-management-area');
             currentParentScoreDisplay = document.getElementById('current-parent-score');
             newTotalScoreInput = document.getElementById('new-total-score-input');
-            updateTotalScoreButton = document.getElementById('update-total-score-button');
             scoreUpdateMessage = document.getElementById('score-update-message');
+            // New password change DOM elements
+            passwordChangeArea = document.getElementById('password-change-area');
+            currentPasswordChangeInput = document.getElementById('current-password-change-input');
+            newPasswordInput = document.getElementById('new-password-input');
+            confirmNewPasswordInput = document.getElementById('confirm-new-password-input');
+            passwordChangeMessage = document.getElementById('password-change-message');
+            confirmParentModeButton = document.getElementById('confirm-parent-mode-button'); // Assign new consolidated button
 
 
             // Firebase 초기화는 이미 전역적으로 이루어졌으므로 여기서 다시 호출할 필요 없음.
@@ -848,10 +912,17 @@
                     playClickSound();
                     parentModeModal.style.display = 'flex';
                     passwordInputArea.style.display = 'block'; // Show password area
+                    submitPasswordButton.style.display = 'block'; // Ensure submit button is visible for initial password
+                    confirmParentModeButton.style.display = 'none'; // Ensure consolidated confirm button is hidden initially
                     scoreManagementArea.style.display = 'none'; // Hide score management area initially
+                    passwordChangeArea.style.display = 'none'; // Hide password change area initially
                     parentPasswordInput.value = ''; // Clear previous input
                     passwordErrorMessage.style.display = 'none'; // Hide error message
                     scoreUpdateMessage.style.display = 'none'; // Hide update message
+                    passwordChangeMessage.style.display = 'none'; // Hide password change message
+                    currentPasswordChangeInput.value = ''; // Clear password change inputs
+                    newPasswordInput.value = '';
+                    confirmNewPasswordInput.value = '';
                     parentPasswordInput.focus(); // Focus on password input
                 });
             }
@@ -860,6 +931,9 @@
                 closeParentModalButton.addEventListener('click', () => {
                     playClickSound();
                     parentModeModal.style.display = 'none';
+                    // Modals are designed to close and clear when close button is clicked.
+                    // If we navigate to home screen on modal close, this will be handled by the '확인' button.
+                    // For direct close, just hide the modal.
                 });
             }
 
@@ -867,10 +941,13 @@
                 submitPasswordButton.addEventListener('click', () => {
                     playClickSound();
                     const enteredPassword = parentPasswordInput.value;
-                    const correctPassword = "1370"; // Initial password
-                    if (enteredPassword === correctPassword) {
+                    // Use the loaded parentPassword for verification
+                    if (enteredPassword === parentPassword) { // Changed from hardcoded "1370"
                         passwordInputArea.style.display = 'none';
+                        submitPasswordButton.style.display = 'none'; // Hide initial submit button
                         scoreManagementArea.style.display = 'block';
+                        passwordChangeArea.style.display = 'block'; // Show password change area
+                        confirmParentModeButton.style.display = 'block'; // Show consolidated confirm button
                         currentParentScoreDisplay.textContent = accumulatedScore.toFixed(0);
                         newTotalScoreInput.value = accumulatedScore.toFixed(0); // Pre-fill with current score
                     } else {
@@ -880,17 +957,95 @@
                 });
             }
 
-            if (updateTotalScoreButton) {
-                updateTotalScoreButton.addEventListener('click', async () => {
+            // Consolidated Confirm Button Listener
+            if (confirmParentModeButton) {
+                confirmParentModeButton.addEventListener('click', async () => {
                     playClickSound();
+
+                    // 1. Try to save score
                     const newScore = parseInt(newTotalScoreInput.value, 10);
+                    let scoreOperationAttempted = false; // Flag to track if score save was attempted
                     if (!isNaN(newScore) && newScore >= 0) {
-                        await saveScoreForParent(newScore);
+                        await saveScoreForParent(newScore); // This function will display its own success/error message
+                        scoreOperationAttempted = true;
                     } else {
                         scoreUpdateMessage.textContent = "유효한 점수를 입력해주세요! (0 이상의 숫자)";
                         scoreUpdateMessage.style.color = "red";
                         scoreUpdateMessage.style.display = "block";
                     }
+
+                    // 2. Check for password change request
+                    const enteredCurrentPassword = currentPasswordChangeInput.value;
+                    const newPass = newPasswordInput.value;
+                    const confirmNewPass = confirmNewPasswordInput.value;
+                    
+                    passwordChangeMessage.style.display = 'none'; // Hide previous message for password change
+
+                    // Only attempt password change if *any* of the password fields are filled
+                    if (enteredCurrentPassword !== '' || newPass !== '' || confirmNewPass !== '') {
+                        let passwordChangeValid = true;
+
+                        if (enteredCurrentPassword === '') {
+                            passwordChangeMessage.textContent = "현재 비밀번호를 입력해주세요.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        } else if (newPass === '') {
+                            passwordChangeMessage.textContent = "새 비밀번호를 입력해주세요.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        } else if (confirmNewPass === '') {
+                            passwordChangeMessage.textContent = "새 비밀번호 확인을 입력해주세요.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        }
+
+                        if (passwordChangeValid && enteredCurrentPassword !== parentPassword) {
+                            passwordChangeMessage.textContent = "현재 비밀번호가 일치하지 않습니다.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        }
+
+                        if (passwordChangeValid && newPass !== confirmNewPass) {
+                            passwordChangeMessage.textContent = "새 비밀번호와 확인이 일치하지 않습니다.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        }
+
+                        if (passwordChangeValid && newPass.length < 4) {
+                            passwordChangeMessage.textContent = "새 비밀번호는 최소 4자 이상이어야 합니다.";
+                            passwordChangeMessage.style.color = "red";
+                            passwordChangeMessage.style.display = "block";
+                            passwordChangeValid = false;
+                        }
+
+                        if (passwordChangeValid) {
+                            await saveParentPassword(newPass); // This function also displays its own message
+                        }
+                    } else {
+                        // All password fields are empty, so no password change will be attempted.
+                        // Clear any previous password change message if it was just left blank after being filled.
+                        passwordChangeMessage.style.display = "none";
+                    }
+
+                    // Clear inputs for next time after operation attempts
+                    newTotalScoreInput.value = '';
+                    currentPasswordChangeInput.value = '';
+                    newPasswordInput.value = '';
+                    confirmNewPasswordInput.value = '';
+
+                    // Close modal and go to home screen after a short delay
+                    setTimeout(() => {
+                        parentModeModal.style.display = 'none';
+                        scoreUpdateMessage.style.display = "none";
+                        passwordErrorMessage.style.display = "none"; // Also hide password error from initial login
+                        passwordChangeMessage.style.display = "none";
+                        showSection('home-screen'); // Go to home screen
+                    }, 1000); // 1초 지연
                 });
             }
         };
@@ -1131,7 +1286,7 @@
             setTimeout(() => {
                 currentQuestionIndex++;
                 displayQuestion();
-            }, 2000); // 2초 후 다음 문제
+            }, 0); // 1000ms (1초)를 0ms (0초)로 변경
         }
 
         // 최종 결과 표시 함수
@@ -1152,8 +1307,9 @@
                 currentProgressDisplayElement.style.display = 'none'; // 퀴즈 종료 시 진행 상황 표시기 숨김
             }
 
-            // 100점 만점으로 환산
-            const baseScore = (score / TOTAL_QUESTIONS) * 100;
+            // 500점 만점으로 환산
+            const baseScore = (score / TOTAL_QUESTIONS) * 500; 
+
             let finalScore = baseScore;
             let bonusText = "";
 
@@ -1176,7 +1332,7 @@
                 currentFinalResultScreen.innerHTML = `
                     <h2>퀴즈 대모험 끝! 🎉</h2>
                     <p>총 ${TOTAL_QUESTIONS}개 문제 중에 ${score}개 맞췄네! 대단하다! 👍</p>
-                    ${bonusText ? bonusText : `<p>별 100개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
+                    ${bonusText ? bonusText : `<p>별 500개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
                     <button id="restartQuizButtonFinal" class="option-button">다시 도전! 💪</button>
                     <button id="homeFromResultButtonFinal" class="home-button-style">집으로 돌아가기 🏡</button>
                 `;
@@ -1225,3 +1381,4 @@
     </script>
 </body>
 </html>
+ 
