@@ -382,6 +382,7 @@
             /* 버튼 중앙 정렬을 위한 스타일 추가 */
             display: block; /* 블록 요소로 만들어 너비 전체 사용 */
             margin: 0 auto; /* 좌우 마진 자동 설정으로 가운데 정렬 */
+            max-width: 150px; /* 버튼의 최대 너비를 제한하여 가운데 정렬이 더 잘 되도록 */
         }
 
         .modal-button:hover {
@@ -407,8 +408,9 @@
         <!-- Home Screen -->
         <div id="home-screen">
             <h1>✨ 도전!! 퀴즈 탐험!! ✨</h1>
-            <div id="accumulated-score-display">  하진이의 간식 점수: 0점 🌟</div>
+            <div id="accumulated-score-display">🌟 하진이의 간식 점수: 0점 🌟</div>
             <p style="font-size: 0.9em; color: #666; margin-top: 10px;">이 점수를 부모님께 보여주고 맛있는 간식과 교환해보세요! 🍪🍭</p>
+            <p style="font-size: 0.8em; color: #aaa;">현재 사용자 ID: <span id="debug-user-id">로딩 중...</span></p> <!-- 디버그용 사용자 ID 표시 -->
             <div class="button-group">
                 <button id="btnAddition">더하기 친구들 덧셈 퀴즈</button>
                 <button id="btnSubtract">빼기 친구들 뺄셈 퀴즈</button>
@@ -484,9 +486,9 @@
                 <p style="margin-top: 15px;">새로운 총 점수를 입력해주세요:</p>
                 <input type="number" id="new-total-score-input" placeholder="새로운 점수" class="modal-input" min="0">
                 <p id="score-update-message" class="error-message" style="display:none;"></p>
+                <button id="update-total-score-button" class="modal-button">점수 수정</button>
             </div>
-
-            <!-- New Password Change Area -->
+             <!-- New Password Change Area -->
             <div id="password-change-area" style="display:none; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
                 <h3>비밀번호 변경</h3>
                 <p>현재 비밀번호를 입력해주세요:</p>
@@ -497,7 +499,7 @@
                 <input type="password" id="confirm-new-password-input" placeholder="새 비밀번호 확인" class="modal-input">
                 <p id="password-change-message" class="error-message" style="display:none;"></p>
             </div>
-            <!-- Consolidated Confirm Button - Initially hidden -->
+             <!-- Consolidated Confirm Button - Initially hidden -->
             <button id="confirm-parent-mode-button" class="modal-button" style="background-color: #4CAF50; margin-top: 20px; display: none;">확인</button>
         </div>
     </div>
@@ -555,6 +557,7 @@
         let scoreManagementArea;
         let currentParentScoreDisplay;
         let newTotalScoreInput;
+        let updateTotalScoreButton;
         let scoreUpdateMessage; // Add reference for score update message
         // New password change DOM elements
         let passwordChangeArea;
@@ -694,7 +697,12 @@
         // 누적 점수 화면 업데이트
         function updateAccumulatedScoreDisplay() {
             if (accumulatedScoreDisplayElement) {
-                accumulatedScoreDisplayElement.textContent = `🌟 하진이의 간식 점수: ${accumulatedScore.toFixed(0)}점 🌟`;
+                accumulatedScoreDisplayElement.textContent = `🌟 하진이의 간식 점수: ${accumulatedScore.toFixed(0)}점  `;
+            }
+            // 디버그용 사용자 ID 표시 업데이트
+            const debugUserIdElement = document.getElementById('debug-user-id');
+            if (debugUserIdElement) {
+                debugUserIdElement.textContent = userId;
             }
         }
 
@@ -785,12 +793,14 @@
         // __firebase_config가 정의되지 않았다면, 개발 환경을 위해 기본 값을 사용합니다.
         // GitHub Pages에 배포하려면, YOUR_API_KEY_HERE, YOUR_MESSAGING_SENDER_ID, YOUR_APP_ID 값을 실제 값으로 대체해야 합니다.
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyCCNFrA7cjP1bN2yUZPHDWSrudTcujAlxQ", // GitHub Pages 배포 시 실제 API 키를 여기에 입력 (경고: 공개 저장소 유출 위험!)
+            // 사용자님의 Firebase 프로젝트 'hajinquizgame'의 공식 API Key입니다.
+            // Google Cloud Console에서 이 키에 웹사이트 및 API 제한을 걸어주시면 안전하게 사용할 수 있습니다.
+            apiKey: "AIzaSyAvkWU9lmvS-5XwsGZohJujIDieoSKjC5Y", 
             authDomain: "hajinquizgame.firebaseapp.com",
             projectId: "hajinquizgame",
             storageBucket: "hajinquizgame.firebasestorage.app",
-            messagingSenderId: "60234481347", // 실제 값으로 대체해야 합니다.
-            appId: "1:60234481347:web:b7aa24967ccd4b728a2c76" // 실제 값으로 대체해야 합니다.
+            messagingSenderId: "60234481347", 
+            appId: "1:60234481347:web:b7aa24967ccd4b728a2c76" 
         };
 
         // 디버깅을 위해 firebaseConfig 내용을 콘솔에 출력 (이 부분은 나중에 삭제해도 됩니다.)
@@ -838,6 +848,7 @@
             scoreManagementArea = document.getElementById('score-management-area');
             currentParentScoreDisplay = document.getElementById('current-parent-score');
             newTotalScoreInput = document.getElementById('new-total-score-input');
+            updateTotalScoreButton = document.getElementById('update-total-score-button');
             scoreUpdateMessage = document.getElementById('score-update-message');
             // New password change DOM elements
             passwordChangeArea = document.getElementById('password-change-area');
@@ -845,7 +856,7 @@
             newPasswordInput = document.getElementById('new-password-input');
             confirmNewPasswordInput = document.getElementById('confirm-new-password-input');
             passwordChangeMessage = document.getElementById('password-change-message');
-            confirmParentModeButton = document.getElementById('confirm-parent-mode-button'); // Assign new consolidated button
+            confirmParentModeButton = document.getElementById('confirm-parent-mode-button'); // New consolidated button
 
 
             // Firebase 초기화는 이미 전역적으로 이루어졌으므로 여기서 다시 호출할 필요 없음.
