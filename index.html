@@ -616,7 +616,12 @@
             try {
                 // Canvas 환경이 아닌 GitHub Pages 환경에서는 __initial_auth_token이 제공되지 않으므로,
                 // 항상 signInAnonymously를 시도하도록 변경합니다.
-                await signInAnonymously(auth);
+                // NOTE: Using __initial_auth_token from Canvas environment if available, otherwise sign in anonymously.
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
                 userId = auth.currentUser.uid;
                 console.log("Signed in with userId:", userId);
                 await loadAccumulatedScore(); // 점수 로드
@@ -637,7 +642,9 @@
                 return;
             }
             // Firestore 문서 참조 (개인 사용자 데이터 저장 경로)
-            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            // Use __app_id for the artifactId if available
+            const artifactId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            const userScoreRef = doc(db, `artifacts/${artifactId}/users/${userId}/userScores`, 'total');
             try {
                 const docSnap = await getDoc(userScoreRef);
                 if (docSnap.exists()) {
@@ -669,7 +676,9 @@
                 console.log("Fallback userId in use, skipping Firestore save for score.");
                 return;
             }
-            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            // Use __app_id for the artifactId if available
+            const artifactId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            const userScoreRef = doc(db, `artifacts/${artifactId}/users/${userId}/userScores`, 'total');
             try {
                 accumulatedScore += Math.round(newScore); // 새 점수를 누적 점수에 더함 (정수로 반올림)
                 await setDoc(userScoreRef, { totalScore: accumulatedScore }, { merge: true }); // merge: true로 기존 필드를 유지하며 업데이트
@@ -689,7 +698,9 @@
                 scoreUpdateMessage.style.display = "block";
                 return;
             }
-            const userScoreRef = doc(db, `artifacts/${firebaseConfig.projectId}/users/${userId}/userScores`, 'total');
+            // Use __app_id for the artifactId if available
+            const artifactId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            const userScoreRef = doc(db, `artifacts/${artifactId}/users/${userId}/userScores`, 'total');
             try {
                 accumulatedScore = newTotal; // Overwrite the score
                 await setDoc(userScoreRef, { totalScore: accumulatedScore }); // No merge: true, overwrite completely
@@ -711,17 +722,20 @@
             }
         }
 
-        // 사용자님이 제공해주신 실제 firebaseConfig 객체 정보가 여기에 반영되었습니다.
-        const firebaseConfig = {
-            apiKey: "AIzaSyAvkWU9lmvS-5XwsGZohJujIDieoSKjC5Y", 
+        // Canvas 환경에서 제공하는 __firebase_config와 __app_id 변수를 사용하도록 수정합니다.
+        // 이렇게 하면 API 키가 코드에 직접 노출되지 않아 보안이 강화됩니다.
+        // __firebase_config가 정의되지 않았다면, 개발 환경을 위해 기본 값을 사용합니다.
+        // GitHub Pages에 배포하려면, YOUR_API_KEY_HERE, YOUR_MESSAGING_SENDER_ID, YOUR_APP_ID 값을 실제 값으로 대체해야 합니다.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY_HERE", // GitHub Pages 배포 시 실제 API 키를 여기에 입력 (경고: 공개 저장소 유출 위험!)
             authDomain: "hajinquizgame.firebaseapp.com",
             projectId: "hajinquizgame",
             storageBucket: "hajinquizgame.firebasestorage.app",
-            messagingSenderId: "60234481347",
-            appId: "1:60234481347:web:b7aa24967ccd4b728a2c76"
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // 실제 값으로 대체해야 합니다.
+            appId: "YOUR_APP_ID" // 실제 값으로 대체해야 합니다.
         };
 
-        // 디버깅을 위해 firebaseConfig 내용을 콘솔에 출력
+        // 디버깅을 위해 firebaseConfig 내용을 콘솔에 출력 (이 부분은 나중에 삭제해도 됩니다.)
         console.log("Firebase Config:", firebaseConfig);
 
         // Firebase 앱 초기화는 window.onload 밖에서 전역적으로 수행됩니다.
@@ -1091,7 +1105,7 @@
                 clickedButton.classList.add('highlight-correct'); // 선택한 버튼 하이라이트
                 score++;
                 if (correctSynth) { // 정답 "딩동" 소리
-                    correctSynth.triggerAttackRelease("C5", "16n"); // 첫 번째 "딩"
+                    correctSynth.triggerAttackRelease("C5", "16n", Tone.now()); // 첫 번째 "딩"
                     correctSynth.triggerAttackRelease("G5", "16n", Tone.now() + 0.1); // 0.1초 뒤 "동"
                 }
             } else {
@@ -1108,7 +1122,7 @@
                     }
                 });
                 if (incorrectSynth) { // 오답 소리 (정답 소리를 거꾸로)
-                    incorrectSynth.triggerAttackRelease("G4", "16n"); // "동" 낮은 버전
+                    incorrectSynth.triggerAttackRelease("G4", "16n", Tone.now()); // "동" 낮은 버전
                     incorrectSynth.triggerAttackRelease("C4", "16n", Tone.now() + 0.1); // "딩" 낮은 버전
                 }
             }
@@ -1211,4 +1225,3 @@
     </script>
 </body>
 </html>
- 
