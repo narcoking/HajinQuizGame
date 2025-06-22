@@ -521,6 +521,12 @@
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // 전역 변수 초기화
+        var app, db, auth, userId;
+        var accumulatedScore = 0; // 누적 점수
+        var parentPassword = "1370"; // 학부모 모드 비밀번호 (기본값)
+        // 디버깅을 위해 parentPassword가 전역적으로 선언된 직후 상태를 기록합니다.
+        console.log("parentPassword 전역 선언 및 초기화 직후:", typeof parentPassword, parentPassword);
+
         let currentQuizType = ''; // 'addition', 'subtract', 'multiply'
         let currentDifficulty = '';
         let currentQuestionIndex = 0;
@@ -528,11 +534,7 @@
         let questions = []; // 현재 퀴즈의 문제, 정답, 보기들을 저장
 
         const TOTAL_QUESTIONS = 40; // 총 문제 개수를 2개에서 40개로 변경!
-
-        // Firebase 관련 전역 변수
-        var app, db, auth, userId; // 'let' 대신 'var'를 사용하여 변수 호이스팅을 보장
-        var accumulatedScore = 0; // 누적 점수
-        var parentPassword = "1370"; // 학부모 모드 비밀번호 (기본값)
+        
         var accumulatedScoreDisplayElement; // 누적 점수 표시 DOM 요소
 
         // Tone.js 관련 전역 변수
@@ -648,22 +650,30 @@
         // 사용자 인증 및 누적 점수 로드
         async function signInUser() {
             try {
-                // Canvas 환경이 아닌 GitHub Pages 환경에서는 __initial_auth_token이 제공되지 않으므로,
-                // 항상 signInAnonymously를 시도하도록 변경합니다.
-                // NOTE: Using __initial_auth_token from Canvas environment if available, otherwise sign in anonymously.
                 if (typeof __initial_auth_token !== 'undefined') {
+                    // Canvas 환경인 경우 사용자 지정 토큰으로 로그인
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
+                    // GitHub Pages 등 Canvas 외 환경인 경우 익명 로그인 시도
+                    console.log("Canvas 환경이 아니므로 익명 로그인 시도...");
                     await signInAnonymously(auth);
                 }
-                userId = auth.currentUser.uid;
-                console.log("Signed in with userId:", userId);
+
+                if (auth.currentUser) {
+                    userId = auth.currentUser.uid;
+                    console.log("Firebase에 로그인 완료 (UserID):", userId);
+                } else {
+                    // 익명 로그인 실패 또는 currentUser가 null인 경우
+                    console.error("Firebase 익명 로그인에 실패했습니다. userId가 null입니다.");
+                    userId = 'anonymous-fallback-' + crypto.randomUUID(); // 오류 시 폴백 ID 사용
+                    console.log("Fallback userId 사용:", userId);
+                }
+                
                 await loadAccumulatedScore(); // 점수 로드
             } catch (error) {
-                console.error("Firebase Auth Error:", error);
-                // 인증 실패 시, 임시 익명 사용자 ID로 폴백 (점수 저장/로드 기능은 동작하지 않음)
-                userId = 'anonymous-fallback-' + crypto.randomUUID();
-                console.log("Using anonymous fallback userId due to auth error:", userId);
+                console.error("Firebase 인증 오류 발생:", error);
+                userId = 'anonymous-fallback-' + crypto.randomUUID(); // 오류 시 폴백 ID 사용
+                console.log("Fallback userId 사용 (오류 발생 시):", userId);
                 accumulatedScore = 0; // 인증 실패 시 점수 0으로 초기화
                 parentPassword = "1370"; // 인증 실패 시 비밀번호 기본값으로 설정
                 updateAccumulatedScoreDisplay(); // 화면 업데이트
@@ -672,10 +682,11 @@
 
         // 누적 점수 로드 함수
         async function loadAccumulatedScore() {
-            // 방어적인 코드: 만약 어떤 이유로 parentPassword가 아직 정의되지 않았다면 초기화
+            // 이 시점에서 parentPassword 변수가 'not defined' 상태일 수 있다는 보고가 있어,
+            // 추가적인 방어 로직을 삽입합니다. (이전 var 선언이 확실하다면 불필요할 수 있음)
             if (typeof parentPassword === 'undefined') {
                 parentPassword = "1370";
-                console.warn("parentPassword가 loadAccumulatedScore에서 정의되지 않아 기본값으로 초기화되었습니다.");
+                console.warn("loadAccumulatedScore 내부에서 parentPassword가 undefined 상태였습니다. 기본값으로 초기화합니다.");
             }
 
             if (!userId || userId.startsWith('anonymous-fallback-')) { // 폴백 userId인 경우 Firestore 접근 시도하지 않음
@@ -1312,7 +1323,7 @@
             setTimeout(() => {
                 currentQuestionIndex++;
                 displayQuestion();
-            }, 2000); // 2초 후 다음 문제
+            }, 0); // 1000ms (1초)를 0ms (0초)로 변경
         }
 
         // 최종 결과 표시 함수
@@ -1333,8 +1344,9 @@
                 currentProgressDisplayElement.style.display = 'none'; // 퀴즈 종료 시 진행 상황 표시기 숨김
             }
 
-            // 100점 만점으로 환산
-            const baseScore = (score / TOTAL_QUESTIONS) * 100;
+            // 500점 만점으로 환산
+            const baseScore = (score / TOTAL_QUESTIONS) * 500; 
+
             let finalScore = baseScore;
             let bonusText = "";
 
@@ -1357,7 +1369,7 @@
                 currentFinalResultScreen.innerHTML = `
                     <h2>퀴즈 대모험 끝! 🎉</h2>
                     <p>총 ${TOTAL_QUESTIONS}개 문제 중에 ${score}개 맞췄네! 대단하다! 👍</p>
-                    ${bonusText ? bonusText : `<p>별 100개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
+                    ${bonusText ? bonusText : `<p>별 500개 중에 <span style="color: #007bff; font-weight: bold;">${finalScore.toFixed(0)}개</span> 모았어! 💖</p>`}
                     <button id="restartQuizButtonFinal" class="option-button">다시 도전! 💪</button>
                     <button id="homeFromResultButtonFinal" class="home-button-style">집으로 돌아가기 🏡</button>
                 `;
